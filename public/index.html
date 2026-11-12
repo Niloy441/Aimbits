@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="bn" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>bitAIM + VIP Enterprise Realtime Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+              primary: '#00F0FF',
+              secondary: '#10B981',
+              dark: '#0F172A',
+              card: '#1E293B',
+              border: '#334155'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+    body {
+      font-family: 'Hind Siliguri', sans-serif;
+      background-color: #0b0f19;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.25);
+    }
+    .glow-green {
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.25);
+    }
+    .pulse-ring {
+      animation: pulse-ring 1.8s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+    }
+    @keyframes pulse-ring {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col antialiased">
+
+  <!-- LOGIN MODAL / OVERLAY -->
+  <div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4">
+    <div class="glass-card w-full max-w-md p-8 rounded-2xl shadow-2xl border border-slate-700/60 text-center">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 mx-auto flex items-center justify-center text-3xl shadow-lg mb-4 text-slate-950 font-black">
+        <i class="fa-solid fa-crosshairs"></i>
+      </div>
+      <h2 class="text-2xl font-bold tracking-tight text-white mb-1">bitAIM + VIP সার্ভার</h2>
+      <p class="text-slate-400 text-sm mb-6">এডমিন প্যানেলে লগইন করতে পাসওয়ার্ড দিন</p>
+      
+      <form id="loginForm" class="space-y-4">
+        <div class="text-left">
+          <label class="text-xs font-semibold text-slate-300 block mb-1">এডমিন সিক্রেট পাসওয়ার্ড</label>
+          <div class="relative">
+            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+              <i class="fa-solid fa-key"></i>
+            </span>
+            <input type="password" id="adminSecretInput" required placeholder="ডিফল্ট: admin1234"
+              class="w-full pl-10 pr-4 py-2.5 bg-slate-900/90 border border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-400 focus:outline-none text-white text-sm mono">
+          </div>
+        </div>
+        <button type="submit" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl shadow-lg transition duration-200">
+          ড্যাশবোর্ডে প্রবেশ করুন <i class="fa-solid fa-arrow-right ml-1"></i>
+        </button>
+      </form>
+      <p id="loginError" class="text-rose-400 text-xs mt-3 hidden"></p>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div id="appContainer" class="flex-1 flex flex-col md:flex-row min-h-screen">
+
+    <!-- SIDEBAR -->
+    <aside class="w-full md:w-64 bg-slate-900/90 border-b md:border-b-0 md:border-r border-slate-800 flex flex-col">
+      <div class="p-5 border-b border-slate-800/80 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-400 to-emerald-400 flex items-center justify-center text-slate-950 text-xl font-black shadow-md">
+            <i class="fa-solid fa-crosshairs"></i>
+          </div>
+          <div>
+            <h1 class="font-bold text-lg text-white leading-tight">bitAIM + VIP</h1>
+            <div class="flex items-center gap-1.5 mt-0.5">
+              <span id="realtimeStatusDot" class="w-2 h-2 rounded-full bg-emerald-400 pulse-ring"></span>
+              <span id="realtimeStatusText" class="text-[11px] font-bold text-emerald-400">100% Realtime</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAV TABS -->
+      <nav class="p-3 space-y-1.5 flex-1">
+        <button onclick="switchTab('overview')" id="tabBtn-overview" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">
+          <i class="fa-solid fa-chart-pie w-5 text-center"></i>
+          <span>ওভারভিউ (Overview)</span>
+        </button>
+        <button onclick="switchTab('users')" id="tabBtn-users" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i class="fa-solid fa-users-gear w-5 text-center"></i>
+          <span>ইউজার কন্ট্রোল (Users)</span>
+          <span id="badgeUsersCount" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">0</span>
+        </button>
+        <button onclick="switchTab('payments')" id="tabBtn-payments" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i class="fa-solid fa-money-bill-transfer w-5 text-center"></i>
+          <span>পেমেন্ট রিকোয়েস্ট</span>
+          <span id="badgePendingPayments" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-bold hidden">0</span>
+        </button>
+        <button onclick="switchTab('activity')" id="tabBtn-activity" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i class="fa-solid fa-tower-broadcast w-5 text-center text-cyan-400"></i>
+          <span>রিয়েল-টাইম ফিড (Feed)</span>
+        </button>
+        <button onclick="switchTab('settings')" id="tabBtn-settings" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i class="fa-solid fa-sliders w-5 text-center"></i>
+          <span>সার্ভার ও পেমেন্ট নম্বর</span>
+        </button>
+        <button onclick="switchTab('firebase')" id="tabBtn-firebase" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-sm transition text-slate-400 hover:text-white hover:bg-slate-800/60">
+          <i class="fa-brands fa-google w-5 text-center text-amber-400"></i>
+          <span>ফায়ারবেজ সিঙ্ক</span>
+        </button>
+      </nav>
+
+      <!-- USER FOOTER -->
+      <div class="p-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+        <div>
+          <span class="block text-slate-200 font-semibold">এডমিন মোড</span>
+          <span class="text-[11px] text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> লাইভ সংযুক্ত
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleSound()" id="soundToggleBtn" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-amber-400 transition" title="সাউন্ড অন/অফ">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+          <button onclick="logout()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-rose-400 transition" title="লগআউট">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 p-4 md:p-8 overflow-y-auto">
+
+      <!-- TOP BAR STATUS -->
+      <div class="mb-6 flex flex-wrap items-center justify-between gap-3 bg-slate-900/60 p-3 rounded-2xl border border-slate-800">
+        <div class="flex items-center gap-2 text-xs">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping inline-block"></span>
+          <span class="font-bold text-slate-200">সার্ভার স্ট্যাটাস:</span>
+          <span class="text-emerald-400 font-bold">অনলাইন ও রিয়েল-টাইম স্ট্রিমিং অ্যাক্টিভ</span>
+          <span class="text-slate-500 mx-1">•</span>
+          <span class="text-slate-400">অনলাইন ডিভাইস: <b id="statOnlineUsersTop" class="text-cyan-400 mono">0</b> টি</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openBroadcastModal()" class="px-3 py-1.5 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-slate-950 text-xs font-bold rounded-xl flex items-center gap-1.5 shadow">
+            <i class="fa-solid fa-bullhorn"></i> ব্রডকাস্ট নোটিশ পাঠান
+          </button>
+          <button onclick="loadAllData()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 border border-slate-700">
+            <i class="fa-solid fa-rotate"></i> রিফ্রেশ
+          </button>
+        </div>
+      </div>
+
+      <!-- ================= TAB: OVERVIEW ================= -->
+      <section id="tab-overview" class="space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white">ড্যাশবোর্ড ওভারভিউ</h2>
+            <p class="text-slate-400 text-sm">bitAIM + অ্যাপ ইউজার, লাইসেন্স এবং পেমেন্ট মনিটরিং</p>
+          </div>
+        </div>
+
+        <!-- STATS CARDS -->
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-4">
+          <!-- Total Users -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">মোট ইউজার</div>
+            <div id="statTotalUsers" class="text-3xl font-extrabold text-white mono">0</div>
+            <div class="text-xs text-slate-500 mt-1">কানেক্টেড ডিভাইস</div>
+            <div class="absolute right-4 bottom-4 text-cyan-500/10 text-5xl">
+              <i class="fa-solid fa-mobile-screen"></i>
+            </div>
+          </div>
+
+          <!-- Premium Users -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden border-emerald-500/30">
+            <div class="text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-2">👑 প্রিমিয়াম VIP</div>
+            <div id="statPremiumUsers" class="text-3xl font-extrabold text-emerald-400 mono">0</div>
+            <div class="text-xs text-emerald-500/80 mt-1">ফুল এইম ফিচারস একটিভ</div>
+            <div class="absolute right-4 bottom-4 text-emerald-500/10 text-5xl">
+              <i class="fa-solid fa-crown"></i>
+            </div>
+          </div>
+
+          <!-- Free Users -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden">
+            <div class="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">⚪ ফ্রি ইউজার</div>
+            <div id="statFreeUsers" class="text-3xl font-extrabold text-slate-300 mono">0</div>
+            <div class="text-xs text-slate-500 mt-1">বেসিক ট্রায়াল ইউজার</div>
+            <div class="absolute right-4 bottom-4 text-slate-500/10 text-5xl">
+              <i class="fa-solid fa-user"></i>
+            </div>
+          </div>
+
+          <!-- Pending Payments -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden border-amber-500/30">
+            <div class="text-amber-400 text-xs font-semibold uppercase tracking-wider mb-2">⏳ পেন্ডিং পেমেন্ট</div>
+            <div id="statPendingPayments" class="text-3xl font-extrabold text-amber-400 mono">0</div>
+            <div class="text-xs text-amber-500/80 mt-1">অনুমোদনের অপেক্ষায়</div>
+            <div class="absolute right-4 bottom-4 text-amber-500/10 text-5xl">
+              <i class="fa-solid fa-clock"></i>
+            </div>
+          </div>
+
+          <!-- Revenue -->
+          <div class="glass-card p-5 rounded-2xl relative overflow-hidden border-purple-500/30">
+            <div class="text-purple-400 text-xs font-semibold uppercase tracking-wider mb-2">💰 মোট আয় (BDT)</div>
+            <div class="text-3xl font-extrabold text-purple-400 mono">
+              ৳<span id="statRevenue">0</span>
+            </div>
+            <div class="text-xs text-purple-500/80 mt-1">অনুমোদিত পেমেন্ট</div>
+            <div class="absolute right-4 bottom-4 text-purple-500/10 text-5xl">
+              <i class="fa-solid fa-wallet"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- QUICK SHORTCUTS & LIVE NOTICE -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="glass-card p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-lg text-white flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-cyan-400"></i> কুইক অ্যাকশন
+            </h3>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="switchTab('users'); openAddUserModal();" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-left border border-slate-700/60 transition">
+                <i class="fa-solid fa-user-plus text-emerald-400 mb-1 block"></i>
+                <span class="text-sm font-semibold text-slate-200 block">ইউজার এড করুন</span>
+                <span class="text-[11px] text-slate-400">সরাসরি VIP দিন</span>
+              </button>
+              <button onclick="switchTab('payments')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-left border border-slate-700/60 transition">
+                <i class="fa-solid fa-check-double text-cyan-400 mb-1 block"></i>
+                <span class="text-sm font-semibold text-slate-200 block">পেমেন্ট ভেরিফাই</span>
+                <span class="text-[11px] text-slate-400">TrxID অনুমোদন</span>
+              </button>
+              <button onclick="openBroadcastModal()" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-left border border-slate-700/60 transition">
+                <i class="fa-solid fa-tower-broadcast text-blue-400 mb-1 block"></i>
+                <span class="text-sm font-semibold text-slate-200 block">পপআপ বার্তা পাঠান</span>
+                <span class="text-[11px] text-slate-400">লাইভ অ্যাপ এলার্ট</span>
+              </button>
+              <button onclick="switchTab('settings')" class="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-left border border-slate-700/60 transition">
+                <i class="fa-solid fa-money-bill-wave text-amber-400 mb-1 block"></i>
+                <span class="text-sm font-semibold text-slate-200 block">বিকাশ/নগদ নম্বর</span>
+                <span class="text-[11px] text-slate-400">নম্বর আপডেট</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="glass-card p-6 rounded-2xl flex flex-col justify-between space-y-4">
+            <div>
+              <h3 class="font-bold text-lg text-white flex items-center gap-2 mb-2">
+                <i class="fa-solid fa-bullhorn text-amber-400"></i> অ্যাপে চলমান ঘোষণা (Announcement)
+              </h3>
+              <p id="overviewAnnouncement" class="text-sm text-slate-300 bg-slate-900/60 p-4 rounded-xl border border-slate-800 italic">
+                লোড হচ্ছে...
+              </p>
+            </div>
+            <div class="text-xs text-slate-400 flex items-center justify-between">
+              <span>এই মেসেজটি সমস্ত Android অ্যাপে মার্কি টেক্সট হিসেবে শো করে</span>
+              <button onclick="switchTab('settings')" class="text-cyan-400 hover:underline">এডিট করুন</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- RECENT ACTIVITY TICKER -->
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-bold text-white flex items-center gap-2 text-base">
+              <i class="fa-solid fa-clock-rotate-left text-cyan-400"></i> রিয়েল-টাইম অ্যাক্টিভিটি লগ (Live Feed)
+            </h3>
+            <span class="text-xs text-emerald-400 flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> লাইভ ইভেন্ট
+            </span>
+          </div>
+          <div id="activityFeedContainer" class="space-y-2 max-h-56 overflow-y-auto text-xs">
+            <div class="text-slate-500 py-3 text-center">ইভেন্ট লোড হচ্ছে...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: USERS MANAGEMENT (THE MAIN REQUIREMENT) ================= -->
+      <section id="tab-users" class="space-y-6 hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-users text-cyan-400"></i> ইউজার ও ডিভাইস কন্ট্রোল
+            </h2>
+            <p class="text-slate-400 text-sm">যেকোনো ডিভাইসকে ১-ক্লিকে প্রিমিয়াম বা ফ্রি ইউজার বানান (সরাসরি লাইভ পুশ)</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="exportUsersCSV()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs rounded-xl flex items-center gap-1.5 border border-slate-700">
+              <i class="fa-solid fa-file-csv"></i> CSV এক্সপোর্ট
+            </button>
+            <button onclick="openAddUserModal()" class="px-4 py-2.5 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 shadow-lg transition">
+              <i class="fa-solid fa-plus"></i> নতুন ইউজার এড করুন
+            </button>
+          </div>
+        </div>
+
+        <!-- SEARCH & FILTER BAR -->
+        <div class="glass-card p-4 rounded-2xl flex flex-col sm:flex-row gap-3 items-center justify-between">
+          <div class="relative w-full sm:w-80">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+            <input type="text" id="userSearchInput" onkeyup="filterUsers()" placeholder="Device ID বা মডেল দিয়ে খুঁজুন..."
+              class="w-full pl-9 pr-4 py-2 bg-slate-900/90 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-cyan-400">
+          </div>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="setUserFilter('all')" id="filterBtn-all" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">সবাই</button>
+            <button onclick="setUserFilter('premium')" id="filterBtn-premium" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800">👑 প্রিমিয়াম</button>
+            <button onclick="setUserFilter('free')" id="filterBtn-free" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800">⚪ ফ্রি</button>
+            <button onclick="setUserFilter('online')" id="filterBtn-online" class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800">🟢 লাইভ অনলাইন</button>
+          </div>
+        </div>
+
+        <!-- USERS TABLE -->
+        <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-900/80 text-slate-400 text-xs uppercase font-semibold border-b border-slate-800">
+                <tr>
+                  <th class="py-3.5 px-4">ডিভাইস আইডি (Device ID)</th>
+                  <th class="py-3.5 px-4">মডেল / নাম</th>
+                  <th class="py-3.5 px-4">স্ট্যাটাস (Status)</th>
+                  <th class="py-3.5 px-4">প্ল্যান ও মেয়াদ (Plan & Expiry)</th>
+                  <th class="py-3.5 px-4 text-center">১-ক্লিক সুইচ (Free / Premium)</th>
+                  <th class="py-3.5 px-4 text-right">মেয়াদ বৃদ্ধি ও অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Dynamically populated -->
+                <tr>
+                  <td colspan="6" class="text-center py-8 text-slate-500">লোড হচ্ছে...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: PAYMENTS ================= -->
+      <section id="tab-payments" class="space-y-6 hidden">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-money-bill-transfer text-emerald-400"></i> পেমেন্ট অনুমোদন প্যানেল
+            </h2>
+            <p class="text-slate-400 text-sm">বিকাশ, নগদ, রকেটে পাঠানো TrxID যাচাই করে ইউজারকে প্রিমিয়াম দিন</p>
+          </div>
+          <button onclick="loadPayments()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-xl flex items-center gap-2 border border-slate-700 transition">
+            <i class="fa-solid fa-rotate"></i> পেমেন্ট রিফ্রেশ
+          </button>
+        </div>
+
+        <div class="glass-card rounded-2xl overflow-hidden border border-slate-800">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-900/80 text-slate-400 text-xs uppercase font-semibold border-b border-slate-800">
+                <tr>
+                  <th class="py-3.5 px-4">পেমেন্ট আইডি / সময়</th>
+                  <th class="py-3.5 px-4">ডিভাইস আইডি</th>
+                  <th class="py-3.5 px-4">মেথড ও নম্বর</th>
+                  <th class="py-3.5 px-4">TrxID</th>
+                  <th class="py-3.5 px-4">প্ল্যান ও টাকা</th>
+                  <th class="py-3.5 px-4">স্ট্যাটাস</th>
+                  <th class="py-3.5 px-4 text-right">অ্যাকশন</th>
+                </tr>
+              </thead>
+              <tbody id="paymentsTableBody" class="divide-y divide-slate-800 text-slate-300">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: ACTIVITY LOG ================= -->
+      <section id="tab-activity" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-tower-broadcast text-cyan-400"></i> লাইভ রিয়েল-টাইম ইভেন্ট হিস্ট্রি
+          </h2>
+          <p class="text-slate-400 text-sm">সমস্ত অ্যাপ কানেকশন, পেমেন্ট ও এডমিন অ্যাকশনের লাইভ স্ট্রিম</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl space-y-3">
+          <div id="fullActivityLogContainer" class="space-y-2.5 max-h-[600px] overflow-y-auto text-xs">
+            <!-- Full log -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= TAB: SETTINGS & PAYMENT NUMBERS ================= -->
+      <section id="tab-settings" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-sliders text-cyan-400"></i> পেমেন্ট নম্বর ও সিস্টেম কনফিগারেশন
+          </h2>
+          <p class="text-slate-400 text-sm">এখানে নম্বর বা প্যাকেজ পরিবর্তন করলে অ্যাপ রিবিল্ড ছাড়াই সরাসরি লাইভ আপডেট হবে</p>
+        </div>
+
+        <form id="configForm" onsubmit="saveConfig(event)" class="space-y-6 max-w-3xl">
+          <!-- PAYMENT NUMBERS -->
+          <div class="glass-card p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">
+              <i class="fa-solid fa-phone text-emerald-400 mr-1"></i> ইন-অ্যাপ পেমেন্ট অ্যাকাউন্ট নম্বরসমূহ
+            </h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="text-xs font-semibold text-pink-400 block mb-1">
+                  <i class="fa-solid fa-circle-dollar-to-slot"></i> বিকাশ নম্বর (bKash Personal / Agent)
+                </label>
+                <input type="text" id="cfgBkash" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-pink-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-orange-400 block mb-1">
+                  <i class="fa-solid fa-circle-dollar-to-slot"></i> নগদ নম্বর (Nagad Personal / Agent)
+                </label>
+                <input type="text" id="cfgNagad" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-orange-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-purple-400 block mb-1">
+                  <i class="fa-solid fa-circle-dollar-to-slot"></i> রকেট নম্বর (Rocket Personal)
+                </label>
+                <input type="text" id="cfgRocket" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-purple-500 focus:outline-none">
+              </div>
+              <div>
+                <label class="text-xs font-semibold text-cyan-400 block mb-1">
+                  <i class="fa-solid fa-wallet"></i> Binance USDT Address (TRC20)
+                </label>
+                <input type="text" id="cfgUsdt" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-cyan-500 focus:outline-none mono text-xs">
+              </div>
+            </div>
+          </div>
+
+          <!-- APP ANNOUNCEMENT & NOTICE -->
+          <div class="glass-card p-6 rounded-2xl space-y-4">
+            <h3 class="font-bold text-white text-base border-b border-slate-800 pb-2">
+              <i class="fa-solid fa-bullhorn text-amber-400 mr-1"></i> অ্যাপ ঘোষণা ও নোটিশ (Notice Banner)
+            </h3>
+            <div>
+              <label class="text-xs font-semibold text-slate-300 block mb-1">লাইভ ব্যানার মেসেজ</label>
+              <textarea id="cfgAnnouncement" rows="3" class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-amber-500 focus:outline-none"></textarea>
+              <p class="text-[11px] text-slate-500 mt-1">এই লেখাটি সমস্ত ব্যবহারকারীর অ্যাপ স্ক্রিনের উপরে স্ক্রল করবে।</p>
+            </div>
+          </div>
+
+          <button type="submit" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl shadow-lg transition">
+            <i class="fa-solid fa-floppy-disk mr-1"></i> সেটিংস সংরক্ষণ করুন
+          </button>
+        </form>
+      </section>
+
+      <!-- ================= TAB: FIREBASE ================= -->
+      <section id="tab-firebase" class="space-y-6 hidden">
+        <div>
+          <h2 class="text-2xl font-bold text-white flex items-center gap-2">
+            <i class="fa-brands fa-google text-amber-400"></i> ফায়ারবেজ রিয়েল-টাইম ডাটাবেজ ইন্টিগ্রেশন
+          </h2>
+          <p class="text-slate-400 text-sm">আপনার Firebase Realtime Database URL দিলে সমস্ত ইউজার ও পেমেন্ট স্বয়ংক্রিয়ভাবে সিঙ্ক হবে</p>
+        </div>
+
+        <div class="glass-card p-6 rounded-2xl max-w-3xl space-y-5">
+          <div class="bg-amber-500/10 border border-amber-500/30 p-4 rounded-xl text-xs text-amber-300 space-y-1">
+            <div class="font-bold text-sm flex items-center gap-1.5 text-amber-400">
+              <i class="fa-solid fa-lightbulb"></i> কিভাবে ফায়ারবেজ কানেক্ট করবেন?
+            </div>
+            <p>১. <a href="https://console.firebase.google.com" target="_blank" class="underline font-semibold">Firebase Console</a>-এ গিয়ে একটি নতুন প্রজেক্ট তৈরি করুন।</p>
+            <p>২. <strong>Realtime Database</strong> তৈরি করে এর রুলসে read/write: true দিন অথবা উপযুক্ত সিক্রেট কী ব্যবহার করুন।</p>
+            <p>৩. ডাটাবেজ ইউআরএলটি নিচের বক্সে পেস্ট করে সেভ করুন (যেমন: <code class="mono">https://my-bitaim-default-rtdb.firebaseio.com</code>)।</p>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-semibold text-slate-200 block">Firebase Realtime Database URL</label>
+            <input type="text" id="cfgFirebaseUrl" placeholder="https://your-project-id-default-rtdb.firebaseio.com"
+              class="w-full px-3.5 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-amber-500 focus:outline-none mono">
+          </div>
+
+          <button onclick="saveFirebaseConfig()" class="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-bold rounded-xl shadow-lg transition">
+            <i class="fa-solid fa-link mr-1"></i> ফায়ারবেজ লিঙ্ক সেভ করুন
+          </button>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- MODAL: BROADCAST ALERT -->
+  <div id="broadcastModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4 hidden">
+    <div class="glass-card w-full max-w-md p-6 rounded-2xl border border-slate-700 text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-bullhorn text-cyan-400"></i> লাইভ ব্রডকাস্ট পপআপ পাঠান
+        </h3>
+        <button onclick="closeBroadcastModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="broadcastForm" onsubmit="handleSendBroadcast(event)" class="space-y-3.5">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">নোটিসের শিরোনাম (Title)</label>
+          <input type="text" id="broadcastTitle" value="📢 জরুরি অ্যাডমিন নোটিশ"
+            class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+        </div>
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">বার্তা (Message)</label>
+          <textarea id="broadcastMsg" required rows="3" placeholder="উদাঃ সার্ভার মেইনটেন্যান্স চলবে আগামী ১০ মিনিট..."
+            class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none"></textarea>
+          <p class="text-[11px] text-slate-400 mt-1">বর্তমানে অ্যাপে থাকা সমস্ত ইউজারের স্ক্রিনে সাথে সাথে পপআপ আসবে।</p>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeBroadcastModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl hover:bg-slate-700 font-semibold">বাতিল</button>
+          <button type="submit" class="px-5 py-2 bg-gradient-to-r from-cyan-500 to-blue-500 text-slate-950 text-xs font-bold rounded-xl shadow-lg">
+            <i class="fa-solid fa-paper-plane mr-1"></i> তাৎক্ষণিক পাঠান
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD MANUAL USER -->
+  <div id="addUserModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 hidden">
+    <div class="glass-card w-full max-w-md p-6 rounded-2xl border border-slate-700 text-left">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-cyan-400"></i> নতুন ইউজার / ডিভাইস যুক্ত করুন
+        </h3>
+        <button onclick="closeAddUserModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <form id="addUserForm" onsubmit="handleAddUser(event)" class="space-y-3.5">
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ডিভাইস আইডি (Device ID)</label>
+          <input type="text" id="newDeviceId" required placeholder="উদাঃ AIM-87A2-99B1 বা ব্যবহারকারীর ডিভাইসের আইডি"
+            class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white mono focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">ডিভাইসের নাম (ঐচ্ছিক)</label>
+          <input type="text" id="newDeviceName" placeholder="উদাঃ Samsung S23, Xiaomi 13"
+            class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-cyan-400 focus:outline-none">
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">প্রারম্ভিক স্ট্যাটাস</label>
+          <select id="newStatus" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none">
+            <option value="premium">👑 সরাসরি প্রিমিয়াম (VIP)</option>
+            <option value="free">⚪ সাধারণ ফ্রি ইউজার</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-slate-300 block mb-1">প্রিমিয়ামের মেয়াদ</label>
+          <select id="newDuration" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-sm text-white focus:outline-none">
+            <option value="30">১ মাস (৩০ দিন)</option>
+            <option value="7">৭ দিন (১ সপ্তাহ)</option>
+            <option value="90">৩ মাস (৯০ দিন)</option>
+            <option value="365">১ বছর</option>
+            <option value="3650">লাইফটাইম VIP (আজীবন)</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-2">
+          <button type="button" onclick="closeAddUserModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-xl hover:bg-slate-700 font-semibold">বাতিল</button>
+          <button type="submit" class="px-5 py-2 bg-gradient-to-r from-cyan-500 to-emerald-500 text-slate-950 text-xs font-bold rounded-xl shadow-lg">সেভ করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+  <script src="/app.js"></script>
+</body>
+</html>

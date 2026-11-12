@@ -1,0 +1,121 @@
+{
+  "users": {
+    "AIM-DEMO-VIP": {
+      "deviceId": "AIM-DEMO-VIP",
+      "deviceName": "Demo VIP Device (Samsung S23)",
+      "isPremium": true,
+      "plan": "Lifetime VIP",
+      "expireAt": 4102444800000,
+      "createdAt": 1794495679996,
+      "lastSeen": 1794495679996
+    },
+    "AIM-DEMO-FREE": {
+      "deviceId": "AIM-DEMO-FREE",
+      "deviceName": "Demo Free Device (Redmi Note 12)",
+      "isPremium": false,
+      "plan": "Free",
+      "expireAt": 0,
+      "createdAt": 1794495679996,
+      "lastSeen": 1794495679996
+    },
+    "AIM-TEST-123": {
+      "deviceId": "AIM-TEST-123",
+      "deviceName": "Test Phone",
+      "appVersion": "3.7.04",
+      "isPremium": true,
+      "plan": "1 Month VIP",
+      "expireAt": 1797088757084,
+      "createdAt": 1794496756919,
+      "lastSeen": 1794496757107,
+      "updatedAt": 1794496757084
+    },
+    "AIM-LIVE-USER": {
+      "deviceId": "AIM-LIVE-USER",
+      "deviceName": "Manual Added Device",
+      "createdAt": 1794497495203,
+      "lastSeen": 1794497495203,
+      "isOnline": true,
+      "isPremium": true,
+      "plan": "30 Days VIP",
+      "expireAt": 1797089495203,
+      "updatedAt": 1794497495203
+    }
+  },
+  "payments": [
+    {
+      "id": "PAY-MWDP1BGO",
+      "deviceId": "AIM-TEST-123",
+      "senderPhone": "01712345678",
+      "trxId": "TRX8899AABB",
+      "method": "bKash",
+      "plan": "1 Month VIP",
+      "amount": 350,
+      "status": "approved",
+      "createdAt": 1794496757064,
+      "updatedAt": 1794496757084
+    }
+  ],
+  "config": {
+    "bkashNumber": "01700000000 (Personal - Send Money)",
+    "nagadNumber": "01800000000 (Personal - Send Money)",
+    "rocketNumber": "01900000000 (Personal - Send Money)",
+    "usdtAddress": "TYDzsxdCz9kSdCd9872nK2kd91Hj28 (TRC20)",
+    "plans": [
+      {
+        "id": "weekly",
+        "name": "7 Days Pass",
+        "price": 150,
+        "days": 7,
+        "popular": false
+      },
+      {
+        "id": "monthly",
+        "name": "1 Month VIP",
+        "price": 350,
+        "days": 30,
+        "popular": true
+      },
+      {
+        "id": "quarterly",
+        "name": "3 Months VIP Pro",
+        "price": 800,
+        "days": 90,
+        "popular": false
+      },
+      {
+        "id": "lifetime",
+        "name": "Lifetime VIP",
+        "price": 1499,
+        "days": 3650,
+        "popular": false
+      }
+    ],
+    "announcement": "🔥 bitAIM + সার্ভার একটিভ! যেকোনো ইউজারকে লাইভ প্রিমিয়াম ও ফ্রি করতে পারবেন। বিকাশ বা নগদে পেমেন্ট করে TrxID দিন।",
+    "firebaseUrl": "",
+    "minVersion": "3.7.04",
+    "downloadUrl": "https://t.me/your_channel"
+  },
+  "activityLogs": [
+    {
+      "id": "LOG-mwdph5a5fffy",
+      "type": "BROADCAST",
+      "message": "📢 সমস্ত সক্রিয় অ্যাপে বার্তা পাঠানো হয়েছে: \"সার্ভার লাইভ রয়েছে!\"",
+      "metadata": {},
+      "timestamp": 1794497495549
+    },
+    {
+      "id": "LOG-mwdph50makkg",
+      "type": "UPGRADE_VIP",
+      "message": "👑 এডমিন ইউজার AIM-LIVE-USER-কে প্রিমিয়াম VIP বানিয়েছেন (30 Days VIP)",
+      "metadata": {},
+      "timestamp": 1794497495206
+    },
+    {
+      "id": "LOG-mwdph4efrz1g",
+      "type": "USER_CONNECT",
+      "message": "📱 ইউজার AIM-LIVE-USER রিয়েল-টাইমে কানেক্ট হয়েছে",
+      "metadata": {},
+      "timestamp": 1794497494407
+    }
+  ]
+}
